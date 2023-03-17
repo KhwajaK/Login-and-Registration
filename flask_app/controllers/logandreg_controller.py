@@ -1,6 +1,7 @@
 from flask import session, redirect, render_template, request, flash
 from flask_app import app
-from flask_app.models.logandreg_model import Users
+from flask_app.models import logandreg_model 
+from flask_app.models import post_models
 from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt(app)
 
@@ -8,10 +9,11 @@ bcrypt = Bcrypt(app)
 def index():
     return render_template("home.html")
 
+
 @app.route('/input_user', methods=["POST"])
 def register_user():
     if request.form['action'] == "register":
-        is_valid = Users.validate_new_user(request.form)
+        is_valid = logandreg_model.Users.validate_new_user(request.form)
         if not is_valid:
             return redirect("/")
         pw_hash = bcrypt.generate_password_hash(request.form['password'])
@@ -22,19 +24,19 @@ def register_user():
             "email": request.form["email"],
             "password": pw_hash
         }
-        user_id = Users.save(data)
+        user_id = logandreg_model.Users.save(data)
         print(f"this is the user id: {user_id}")
         session["user_id"] = user_id
         return redirect(f"/user/show/{user_id}")
     
     else:
-        this_user = Users.get_by_email({'email': request.form['email']})
-        print('This is the user')
+        this_user = logandreg_model.Users.get_by_email({'email': request.form['email']})
+        session['user_id']= this_user.id
         print(this_user)
         if this_user:
             if len(request.form['password']) < 8:
                 flash('Password must be at least 8 characters')
-                return redirect('/')
+                return redirect('/user/show/')
             if bcrypt.check_password_hash(this_user.password,request.form['password']):
                 session['user_id'] = this_user.id
                 return redirect(f"/user/show/{this_user.id}")
@@ -47,8 +49,18 @@ def register_user():
 
 @app.route("/user/show/<int:id>")
 def display_one(id):
-    data = {"id":id}
-    return render_template("loggedin.html", user= Users.get_one(data))
+    if "user_id" not in session:
+        return redirect('/')
+    data = {"id": session["user_id"]}
+    one_user = logandreg_model.Users.get_one(data)
+    print("this is how we do it")
+    print(one_user)
+    return render_template("wall.html", show_user = one_user, all_posts= post_models.Posts.all_user_posts())
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 # @app.route('/login', methods=['POST'])
 # def login():

@@ -7,10 +7,46 @@
     <title>Login or Register</title>
 </head>
 <body class="d-flex">
+    <header class="d-flex m-2">
+        <div class="col-6">
+            <p class="">Coding Dojo Wall</p>
+        </div>
+        <div class="col-6 text-right">
+        </p>
+    </div>
+</header>
     <h1 class="m-2">Hello {{user.first_name}}!!!</h1>
-    <form action="/" name="Logout" class="p-3 col-3 mx-auto">
+    <form action="/logout" name="Logout" class="p-3 col-3 mx-auto">
         <button type="submit" class="btn btn-primary">Logout</button>
     </form>
+        <div>
+            <form action="/post_form" method="post">
+                <p class="">
+                    What's on your mind? Create a new post:
+                </p>
+                <div class="w-50 alert align-items-center" role="alert">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <p class="form-control is-invalid text-danger text-strong">{{message}}</p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <textarea class="form-control" id="post" name="post" rows="3"></textarea>
+                <input type="submit" value="Submit Post" class="btn btn-success mt-1">
+            </form>
+        </div>
+        <div class="justify-content-center">
+            <h5>All Community Posts</h5>
+            <!-- <div class="overflow-auto w-75 h-50"> -->
+            <div class="overflow-auto p-3 bg-light" style="max-width: w-75; max-height: 300px;">
+                {% for posts in users_posts.posts %}
+                    <h6>{{ posts.user_name }} - {{ posts.created_at }}</h6>
+                    <p> {{ posts.content }} </p>
+                {% endfor %}
+            </div>
+        </div>
 </body>
 </html>
 
